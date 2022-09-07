@@ -1,4 +1,5 @@
 from ast import Return
+from cgitb import text
 from re import X
 from selenium import webdriver
 PATH = "/home/gwyn/miniconda3/condabin/chromedriver" 
@@ -12,12 +13,15 @@ class scraper ():
 
 
     def __init__(self):
-        driver.get ("https://www.imdb.com/feature/genre/?ref_=nv_ch_gr")
-        pass
+        driver.get ('https://www.imdb.com/feature/genre/?ref_=nv_ch_gr')
+        #for genre_link in self.get_links():
+            #driver.get (genre_link)
+            #self.next_page()
 
 
-    def get_links(self):
 
+
+    def get_genre_links(self):
         links =[]
         images = driver.find_elements(By.CSS_SELECTOR, value= "div[class^='ninja_image']")
         for image in images:
@@ -26,15 +30,104 @@ class scraper ():
                 link= a_tag.get_attribute ('href')
                 if link not in links:#removes duplicates
                     links.append (link)
-            except:
+            except: # state the specific error I'm expecting, just in case <3 
                 pass
-        #print (links)
-        #print (len (links))
         return links
+    
 
-#or i could just could somehow search for ninja_image, like if ninja_image in class, append href etc.etc. 
 
 
-boi= scraper()
-print(boi.get_links()
-)
+    def scrape (self):
+        film_links = driver.find_elements(By.CLASS_NAME, value= 'lister-item mode-advanced') #generates a list of links to the films on this page 
+        for film in film_links:
+            self.extract_text(film)
+            self.extract_image (film)
+
+
+
+
+    def extract_text (self, film):
+        
+        driver.get (film)
+        genre = self.get_genre (film)
+        title =  driver.find_element(By.XPATH, value='/html/body/div[2]/main/div/section[1]/section/div[3]/section/section/div[2]/div[1]/h1').get_attribute('innerText') #sc-b73cd867-0 eKrKux
+        rating = driver.find_element(By.XPATH, value='//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[2]/div/div[1]/a/div/div/div[2]/div[1]/span[1]').get_attribute('innerText') 
+        number_of_ratings = driver.find_element(By.XPATH, value= '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[2]/div/div[1]/a/div/div/div[2]/div[3]').get_attribute('innerText') #]driver.find_element(By.CLASS_NAME, value= 'sc-7ab21ed2-3 dPVcnq').text
+        date_and_type = self.date_check (film)
+        text_data = {
+
+            'Title':title,
+            'Date': date_and_type ['Date'],
+            'Genre': genre,
+            'Rating': rating,
+            'Number of Ratings': number_of_ratings,
+            'TV or Film':date_and_type ['Type']
+            }
+
+
+        return text_data
+
+
+
+
+    def date_check(self, film): #it's aaaliivveee!!!!
+        """
+        IMDB pages are formatted differently for TV and films; if its a film, the date is shown first. But if it is TV, the 
+        TV tag will replace the date, and the date will come second. This function checks the element that shows either 
+        Date, or the TV tag:
+        1-If the element is a date: returns the date and the tag 'Film'
+        2-if the element is the Tag 'TV', searches for and returns the date, along with the tag 'TV' 
+        
+        """
+        
+
+        element = driver.find_element(By.XPATH, value='//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[1]/div/ul/li[1]  ').get_attribute('innerText')
+        print (element)
+        if element == 'TV Series': 
+            date =  driver.find_element(By.XPATH, value='//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[1]/div/ul/li[2]/span').get_attribute('innerText')
+            return {'Date': date, 'Type': "TV Series" }
+
+        else: 
+            return {'Date': element, 'Type': 'Film'}
+
+
+
+
+    def get_genre(self, film): #READ UP ON the difference between CSS_selector and By CLASS_NAME!!! 
+        genre = []
+        genre_buttons = driver.find_elements(By.CSS_SELECTOR, "a[class^='sc-16ede01-3 bYNgQ ipc-chip ipc-chip--on-baseAlt']")     #WHY DOES THIS WORK BUT BY CLASS DOESNT!!! (returns [])
+        for genre_button in genre_buttons:
+            span_tag = genre_button.find_element(By.TAG_NAME, 'span')
+            print ("appending genre...")
+            print(span_tag.get_attribute ('innerText'))
+            genre.append (span_tag.get_attribute ('innerText'))
+        return genre
+
+
+
+
+    def extract_image (self, film):
+        pass
+
+
+
+
+    def scroll_to_bottom (self):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    
+
+
+    
+    def next_page (self):
+        next_button_cell= driver.find_element(By.CLASS_NAME, value= "desc")
+        a_tag = next_button_cell.find_element(By.TAG_NAME, value= 'a')
+        next_link = a_tag.get_attribute ('href')
+        driver.get (next_link)
+
+
+
+
+if __name__ == "__main__":
+    my_scraper = scraper()
+    print(my_scraper.extract_text ('https://www.imdb.com/title/tt0093773/?ref_=adv_li_tt'))
+    #print (my_scraper.date_check('https://www.imdb.com/title/tt0093773/?ref_=adv_li_tt'))
