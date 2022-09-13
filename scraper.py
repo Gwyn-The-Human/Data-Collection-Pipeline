@@ -1,5 +1,6 @@
 
 #TODO make image scrape method
+#TODO do i want to be saying page or url? maybe page is nicer
 
 
 from socket import inet_ntoa
@@ -8,7 +9,9 @@ from selenium.webdriver.common.by import By
 import uuid
 import os
 import scraper_variables
-
+from bs4 import BeautifulSoup
+import requests
+import urllib.request
 
 
 class scraper ():
@@ -21,9 +24,19 @@ class scraper ():
             os.makedirs ("raw_data")
         
 
+    def scrape (self): 
+        layer_one_links = self.get_links(scraper_variables.url, scraper_variables.parent_xpath_one, scraper_variables.child_xpath_one)#lists links to genres 
+        for link in layer_one_links: #for each genre link 
+            layer_two_links = self.get_links (link, scraper_variables.parent_xpath_two, scraper_variables.child_xpath_two) #lists links to pages to be scraped
+            for link in layer_two_links:#for each page link
+                text_data = self.extract_text(link)
+                rsc_list = self.extract_images_rsc # will return None if scraper_variables.scrape_text == False
+                self.save_data (text_data, rsc_list) 
+
+
     def get_links(self, url, parent_xpath, child_xpath): 
         """
-        Returns list of links within child elements of the given xpath.
+        Returns list of links within child elements of the given parent.
         If the child element has multiple links, this function returns the first link. 
         """
         links =[]
@@ -37,34 +50,8 @@ class scraper ():
         return links
    
 
-
-    def scrape (self): 
-        layer_one_links = self.get_links(scraper_variables.url, scraper_variables.parent_xpath_one, scraper_variables.child_xpath_one)#lists links to genres 
-        print (f"genres are {layer_one_links}")
-        for link in layer_one_links: #for each genre link 
-            pages = self.get_links (link, scraper_variables.parent_xpath_two, scraper_variables.child_xpath_two) #lists links to pages to be scraped
-            for page in pages:
-                self.save_data (self.extract_text(page))
-                
-
-
-    def save_data(self, data):
-            data_repo_path = os.path.abspath("raw_data")
-            product_path = data_repo_path + "/" + data ["Friendly ID"]   
-            try:
-                os.makedirs(product_path) #made a file named the friendly ID in the Raw_Data directory
-                with open(product_path+ "/data.json" , "w") as file:
-                    file.write (str(data))
-            except FileExistsError:
-                print ("file already saved!")
-
-            #self.extract_image (film)
-
-
-    def extract_text (self, page):
-        
-        self.driver.get (page) #just for testing
-        
+    def extract_text (self, link):#do i need to specify a url here? 
+        self.driver.get (link)
         data_catagory_one =  self.driver.find_element(By.XPATH, value=scraper_variables.data_catagory_one_XPATH).get_attribute('innerText') 
         data_catagory_two = self.driver.find_element(By.XPATH, value=scraper_variables.data_catagory_two_XPATH).get_attribute('innerText') 
         data_catagory_three = self.driver.find_element(By.XPATH, value= scraper_variables.data_catagory_three_XPATH).get_attribute('innerText') 
@@ -88,7 +75,7 @@ class scraper ():
 
     def get_multiple_elements_text(self, xpath): 
         """
-        For instances where one catagory of text data is located accross multiple elements under a single parent element. 
+        For instances where one instance of text data is located accross multiple elements under a single parent element. 
         """
         text = []
         parent = self.driver.find_element(By.XPATH, xpath)
@@ -98,16 +85,43 @@ class scraper ():
         return text
 
 
-    def extract_image (self, film):
-        pass
+    def save_text(self, text_data):#image data optional but text required
+        data_repo_path = os.path.abspath("raw_data")
+        text_path = data_repo_path + "/" + text_data ["Friendly ID"]   
+        try:
+            os.makedirs(text_path) #made a file named the friendly ID in the Raw_Data directory
+            with open(text_path+ "/data.json" , "w") as file:
+                file.write (str(text_data))
+        except FileExistsError:
+            print (f"file {text_data['Friendly ID']} already saved!")
+
+
+    def extract_images_rsc (self, image_attributes):
+        if scraper_variables.scrape_images == False:
+            return None
+        rsc_list = []
+        html_page = requests.get('https://www.imdb.com/title/tt10648342/?ref_=adv_li_tt')
+        soup = BeautifulSoup(html_page.content, 'html.parser')
+        pics = soup.find_all("img", attrs = image_attributes) 
+        for pic in pics: #the for statement loops through pics (a list) and allows for more tahn one image to be scraped. 
+            rsc_list.append (pic ["src"])
+        return rsc_list
+
+
+    def save_images (self, text_data, rsc_list):#uses text_data to get file's friendly ID
+        if scraper_variables.scrape_images == False:
+            return None
+        image_path = f"raw_data/{text_data['Friendly ID']}/images"
+        if os.path.exists (image_path) == False:
+            os.makedirs (image_path)
+        for pic_rsc in rsc_list:
+            urllib.request.urlretrieve (pic_rsc, f"{image_path}/{text_data['Friendly ID']}.jpeg"),  
 
 
     def scroll_to_bottom (self):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     
 
-
-    
     def next_page (self):
         next_button_cell= driver.find_element(By.CLASS_NAME, value= "desc")
         a_tag = next_button_cell.find_element(By.TAG_NAME, value= 'a')
@@ -119,5 +133,9 @@ class scraper ():
 
 if __name__ == "__main__":
     my_scraper = scraper()
-    print(my_scraper.compile_text('https://www.imdb.com/title/tt10648342/?ref_=adv_li_tt'))
-    my_scraper.save_data(my_scraper.compile_text ('https://www.imdb.com/title/tt10648342/?ref_=adv_li_tt'))
+    
+    text_data = my_scraper.extract_text ('https://www.imdb.com/title/tt10648342/?ref_=adv_li_tt')
+    rsc_list = my_scraper.extract_images_rsc (scraper_variables.image_attributes)
+    my_scraper.save_text (text_data)
+    my_scraper.save_images (text_data, rsc_list)
+    

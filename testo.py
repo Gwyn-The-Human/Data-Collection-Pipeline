@@ -1,3 +1,5 @@
+from cgitb import text
+from email.mime import image
 from operator import contains
 from selenium import webdriver
 PATH = "/home/gwyn/miniconda3/condabin/chromedriver" 
@@ -6,21 +8,41 @@ from selenium.webdriver.common.by import By
 import uuid
 import os
 import scraper_variables
-
-
-#driver.get ("https://www.imdb.com/feature/genre/?ref_=nv_ch_gr")
-#elements = driver.find_element (By.XPATH, '//*[@id="main"]/div[6]/span/div/div/div/div' )
-#a_tags = elements.find_elements(By.TAG_NAME, 'a') 
-#for tags in a_tags:
-   # link= tags.get_attribute ('href')
-    #print (link)
+from bs4 import BeautifulSoup
+import requests
+import urllib.request
 
 
 
-driver.get ("https://www.imdb.com/title/tt10648342/?ref_=adv_li_tt")
+def extract_images_src (image_attributes):
+    rsc_list = []
+    html_page = requests.get('https://www.imdb.com/title/tt10648342/?ref_=adv_li_tt')
+    soup = BeautifulSoup(html_page.content, 'html.parser')
+    pics = soup.find_all("img", attrs = image_attributes) 
+    for pic in pics: #the for statement loops through pics (a list) and allows for more tahn one image to be scraped. 
+        rsc_list.append (pic ["src"])
+    return rsc_list
 
-try:
-    genres = driver.find_element('//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[1]/div/ul/li[1]/a').get_attribute("innerText")
-except:
-    pass
-print (genres)
+def save_images (file_id,rsc_list):
+    for pic_rsc in rsc_list:
+        urllib.request.urlretrieve (pic_src, f"{file_id}.jpeg"), 
+
+
+def save_both (*image_rsc_or_text_data): #needs to take text_data
+    try:
+        print (texty)
+        try:
+            print (imagey)
+        except NameError:
+            print ("no image given")
+    except NameError:
+        print ("no text given")
+        try:
+            print (imagey)
+        except NameError:
+            print ("method has received no data")
+
+def fun (a,b):
+    print ("ok")
+
+fun ("a")
