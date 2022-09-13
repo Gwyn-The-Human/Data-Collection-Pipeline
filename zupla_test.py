@@ -28,6 +28,8 @@ link = a_tag.get_attribute('href')
 print ("link is")
 print(link)
 
+
+
 #Blairs advice on doing social media
 #ts been done but 1. more complicated and 2 (they might block you) try twitter; insta was struggle; tictoc--> maybe google how to datacscarep tictoc	
 #robots.text on every website that will tell you what you are allowed to scrape
