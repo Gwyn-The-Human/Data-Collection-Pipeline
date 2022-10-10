@@ -1,5 +1,8 @@
 url = 'https://www.imdb.com/feature/genre/?ref_=nv_ch_gr'
 
+#AWS s3 Bucket that the data is uploaded
+
+bucket = 'gthscraperbucket'
 
 #scrape text and/or images? (if you only want to scrape images it is still reccomended to 
 #scrape two catagories text data as well to generate friendly IDs, otherwise IDs will be random)

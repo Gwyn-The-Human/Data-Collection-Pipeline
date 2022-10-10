@@ -7,6 +7,9 @@ I'm really interested in popular narratives as a way of understanding a particul
 
 # The Scraper
 I've imported selenium and chrome driver (since I'm using chrome as my browser). Also using urllib and beautifulsoup for image scraping, and uuid for generating id's for each insatance of data. 
+
+# ========================ALSO pgadmin and aws s3, and numpy porobablaby -------------------------------------
+
 On itialisation the scraper opens the 'browse by genre' page of imdb, saves the links to each genre. It will loop through each page and collects on release date, genre, rating, and number of ratings. 
 
 File Guide
