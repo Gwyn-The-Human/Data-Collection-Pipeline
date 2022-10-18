@@ -8,7 +8,7 @@ I'm really interested in popular narratives as a way of understanding a particul
 # The Scraper
 I've imported selenium and chrome driver (since I'm using chrome as my browser). Also using urllib and beautifulsoup for image scraping, and uuid for generating id's for each insatance of data. 
 
-# ========================ALSO pgadmin and aws s3, and numpy porobablaby -------------------------------------
+
 
 On itialisation the scraper opens the 'browse by genre' page of imdb, saves the links to each genre. It will loop through each page and collects on release date, genre, rating, and number of ratings. 
 
@@ -43,7 +43,24 @@ ALSO NOTE! get_links will ONLY return the first link it finds in a child element
 
     Developed a tests package using unnittest module, and added it to my python path. Given that the methods are built to be run with different inputs, the tests are for general features like checking that the lengths of the outputs corrolate correctly to the kinds of inputs. 
 
+# Scalabaly Storing the Data
 
+You can specify a Amazon Web Services RDS for storing tabular data remotly, as well as an S3 bucket for sotring images, although currently the scraper can only scraper text AND images or just text (not just images). 
+The scraper_main.py file uses sqlalchemy and pandas to generate a dataframe from the text data as the scraper runs, and then upload it to RDS when the frame has reached a specified size (saved as batch_size in scraper_variables). I decided to upload in batches for a few reasons: 
+1-I want the scraper be able to save remotly without having to also save data locally, so I didn't want it to just iterate throught the locally saved data.json files. 
+2 - If I upload it all at once, then you have to wait until the scraper has totally exhausted the webiste, and if it closed prematurely then it doesnt upload anything. 
+
+So in batches you can customise how frequently during the scrape the data is uploaded, and so it avoids the above problems and isnt as slow and costly as uploading the data one record at a time. Pretty cool right?! 
+
+
+
+# ========================ALSO pgadmin and aws s3, and numpy porobablaby -------------------------------------
+also pandas and postgres and basically just go through imports! 
+json data is an array
+#TODO make sure raw data is being saved where it is supposed to be (saved in the dir it is being run from)
+
+
+explain batches; infers type and wont lose everything fi teh scraper quits prematurely; also can do it remotly without saving locally
 # Features to be implemented
 
 
