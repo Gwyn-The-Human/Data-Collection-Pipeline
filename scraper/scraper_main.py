@@ -15,63 +15,69 @@
 #sys allows the code to communicate with teh operating system. 
 #sys module join 
 
+#TODO add flags for running headless
+
 #TODO if it has already scraped the data, and it doesn't save it locally, it will still add it to teh df and upload it again; fix this? 
-
-#TODO think about an except for if the file exists but the picture wants to save there; how does it behave?
-
-#TODO testing running image scraper without text! 
 
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from sqlalchemy import create_engine
+import argparse
 import boto3
 import json
-import psycopg2
-import pandas as pd
 import os
-from scraper import scraper_variables
+import pandas as pd
+import scraper_variables
 import urllib.request
 import uuid
+from webdriver_manager.chrome import ChromeDriverManager
+#make sure my chrome is up to date! 
 
 
-class Scraper ():
+class Scraper():
 
     def __init__(self):
-        self.path = "/home/gwyn/miniconda3/condabin/chromedriver" 
-        self.driver = webdriver.Chrome (self.path) 
+        #adds flag for running headless mode
+        option = None
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-hdls", "--headless", help="run the scraper as headless",
+                            action="store_true")
+        args = parser.parse_args()
+        if args.headless:
+            option = Options()
+            option.headless = True 
+
+        #sets up driver, prepares raw data folder and df_batch list
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=option)
         if os.path.exists ("raw_data") == False:
             os.makedirs ("raw_data")
         self.df_batch = []
-        self.image_rsc_batch = []
 
 
     def scrape (self):
         """
-        The main method that combines the other methods. Should be customised for use on other websites. 
-
+        The main method that combines the other methods. Should be customised for use on websites other than imdb. 
         """ 
         layer_one_links = self.get_links(scraper_variables.url, scraper_variables.parent_xpath_one, scraper_variables.child_xpath_one)#lists links to genres 
-        for link in layer_one_links: #for each genre link 
+        for link in layer_one_links: #on imdb, for each genre link 
             layer_two_links = self.get_links(link, scraper_variables.parent_xpath_two, scraper_variables.child_xpath_two) #lists links to pages to be scraped
             for link in layer_two_links:#for each page link
-
                #text 
-                extracted_text = self.extract_text(link)
-                self.save_text(extracted_text)
-                self.add_to_df_batch(extracted_text)    
-                self.upload_batch_to_rds()    
+                extracted_text = self._extract_text(link)
+                self._save_text(extracted_text)
+                self._add_to_df_batch(extracted_text)    
+                self._upload_batch_to_rds()    
                 #images 
                 rscs = self._extract_images_rsc()                   
-                self.save_images(extracted_text, rscs)
+                self._save_images(extracted_text, rscs)
                 #self.build_image_batch (rscs, extracted_text[0]["Friendly_ID"])
-                self.upload_images_to_s3(extracted_text[0]["Friendly_ID"]) 
+                self._upload_images_to_s3(extracted_text[0]["Friendly_ID"]) 
 
 
-
-
-    def get_links(self, link, parent_xpath, child_xpath): #takes URL so it can be looped through on different pages
+    def get_links(self, link: str, parent_xpath: str, child_xpath: str): #takes URL so it can be looped through on different pages
         """
         Gets a list of links from the specified child elements of the given parent xpath.
         
@@ -100,21 +106,21 @@ class Scraper ():
         return links
    
 
-
-    def extract_text (self, link):
+    def _extract_text (self, link: str):
         """
-        Extracts text data.
+        Extracts text data from website.
         
         Finds the text of the elements specified by the XPATHs 
-        in scraper_variables.data_catagoroes file, and returns 
+        in scraper_variables.data_catagories, and returns 
         them in a dictionary paired with the tags (also specified in 
-        scraper_variables.data_catagories). Generates a friendly ID 
-        from the extracted text, and a uuid, both of which are included 
-        in the returned dictionary.  
+        scraper_variables.data_catagories), all within a list. Calls 
+        __ad_ids, which generates a friendly ID from the extracted 
+        text, and a uuid, both of which are included in the returned
+         dictionary.   
         
         Returns:
-            A dictionary of the data scraped from the page, and associated IDs, all within a list.
-    """
+            list containing a single dictionary of the data scraped from the page, and associated IDs, all within a list.
+         """
       
         self.driver.get(link)
         compiled_data = {}
@@ -128,42 +134,44 @@ class Scraper ():
         return [self.__add_ids(compiled_data)]   ## added [] here to work with pd.read_json; 
         
 
-    def __add_ids (self, compiled_data):
+    def __add_ids (self, compiled_data: dict):
+        """
+        Takes a dictionary of data, adds IDs as two new keys to the dictionary, and returns the
+        dictionary
+        
+        Args:
+            compiled_data: the dataframe that is being passed in
+
+        Return: 
+            The compiled_data dictionary is being returned with added ID's.
+        """
         compiled_data["Friendly_ID"] = compiled_data[list(compiled_data)[0]] + "-" + compiled_data[list(compiled_data)[1]] #uses list () to index the dictionary compiled_data
         compiled_data["UUID"] = str(uuid.uuid4())
         return compiled_data
 
 
-    def _get_multiple_elements_text(self, xpath): 
+    def _get_multiple_elements_text(self, xpath: str): 
         """
         Returns text in cases where one instance of text data is located accross multiple elements 
         under a single parent element. 
         
-        Args:RROR:  type "year" does not exist
+        Args:
             xpath: (str) the xpath of the parent element
 
         Returns: 
             a list of strings that make up one instance of text data. 
         """
         text = []
-        parent = self.driver.find_element(By.XPATH, xpath)    # def build_image_batch (self, rscs, friendly_id):###in progress
-    #     if scraper_variables.scrape_images:
-    #         self.image_rsc_batch.append (rscs)
-    #         if len(self.image_rsc_batch) == scraper_variables.batch_size:
-    #             image_path = f"raw_data/image_batch"
-    #             os.makedirs(image_path)
-    #             for rsc_list in self.image_rsc_batch:
-    #                 for image_rsc in rsc_list:
-    #                     urllib.request.urlretrieve(image_rsc, f"{image_path}/{friendly_id}.jpeg"),
+        parent = self.driver.find_element(By.XPATH, xpath)   
         text_elements = parent.find_elements(By.TAG_NAME, "span")
         for inner_text in text_elements:
             text.append(inner_text.get_attribute("innerText"))
         return text
 
 
-    def save_text(self, text_data):
+    def _save_text(self, text_data: list):
         """
-        Takes a dictionary of text data, and saves it in a file named after the friendly_ID
+        Takes a list containing a dictionary of text data, and saves it in a file named after the friendly_ID
         in the raw_data directory
         
         Args:
@@ -173,12 +181,10 @@ class Scraper ():
             FileExistsError: an error occured when saving text that has already by saved. 
         """
         data_repo_path = os.path.abspath("raw_data")
-        text_path = data_repo_path + "/" + text_data[0]["Friendly_ID"]   #string indeceses must be integers 
+        text_path = data_repo_path + "/" + text_data[0]["Friendly_ID"]  
         try:
             os.makedirs(text_path) #creates a file named the friendly ID in the Raw_Data directory
             with open(text_path + "/data.json", "w") as file:
-             #   print (text_data)
-             #   print (json.dumps(text_data))
                 file.write (json.dumps(text_data))
         except FileExistsError:
             print(f"file {text_data[0]['Friendly_ID']} already saved!") # also here added [0]
@@ -201,8 +207,7 @@ class Scraper ():
         return rsc_list
 
     
-    def save_images(self, text_data, rsc_list):#could this be a static method? pros? cons? 
-        # Still needs to access scraper_variables!! 
+    def _save_images(self, text_data: list, rsc_list: list):
         """
         Takes a list of image rscs and downloads them to a folder named after the file's friendly ID
         
@@ -230,19 +235,37 @@ class Scraper ():
     #                     urllib.request.urlretrieve(image_rsc, f"{image_path}/{friendly_id}.jpeg"),
     
    
-    def upload_images_to_s3(self, file_name): #same problem as df; need to upload them all at once! 
+    def _upload_images_to_s3(self, file_name: str): #same problem as df; need to upload them all at once! 
+        """
+        Takes in a file name, and if the user wants to scrape images and upload them to S3,
+        it uploads the image to S3. By default uses the friendly id generated in _extract_text().
+        
+        Args: 
+            file_name: the name of the file you want to upload to S3
+        """
         if scraper_variables.scrape_images and scraper_variables.upload:
              s3_client = boto3.client('s3')
              image_response = s3_client.upload_file(f'raw_data/{file_name}/images/{file_name}.jpeg', scraper_variables.bucket, file_name + ".jpeg")
 
 
-    def add_to_df_batch (self,extracted_text): 
+    def _add_to_df_batch (self, extracted_text: list): 
+        """
+    Takes a list of dictionaries as input, converts the list of dictionaries into 
+    a pandas dataframe, then appends the dataframe to a the list of dataframes df_batch. 
+
+    Args:
+        extracted_text: a list of dictionaries, each dictionary is a row in the dataframe
+        """
         if scraper_variables.upload:
             df= pd.DataFrame(extracted_text)
             self.df_batch.append (df)
 
 
-    def upload_batch_to_rds(self):
+    def _upload_batch_to_rds(self):
+        """
+    Checks if df_batch has reached the batch size specified in scraper_variables. If so, concatinates 
+    the list into a singe dataframe and uploads the dateframe to the RDS (also specified in scraper_variables)    
+        """
         if scraper_variables.upload: #make these if gates cleaner
             if len (self.df_batch) == scraper_variables.batch_size:
                 complete_df = pd.concat (self.df_batch) 
