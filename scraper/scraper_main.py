@@ -35,8 +35,12 @@ class Scraper():
             option = Options()
             option.headless = True 
 
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+
         #sets up driver, prepares raw data folder and df_batch list
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=option)
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=option, chrome_options=chrome_options)
         if os.path.exists ("raw_data") == False:
             os.makedirs ("raw_data")
         self.df_batch = []
