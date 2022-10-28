@@ -6,9 +6,8 @@
 #TODO update setup.py deets 
 
 from bs4 import BeautifulSoup
-from scraper import scraper_variables
-from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from sqlalchemy import create_engine
@@ -17,6 +16,7 @@ import boto3
 import json
 import os
 import pandas as pd
+import scraper_variables
 import urllib.request
 import uuid
 from webdriver_manager.chrome import ChromeDriverManager #make sure my chrome is up to date! 
@@ -53,13 +53,12 @@ class Scraper():
                #text 
                 extracted_text = self._extract_text(link)
                 self._save_text(extracted_text)
-                self._add_to_df_batch(extracted_text)    
-                self._upload_batch_to_rds()    
+                # self._add_to_df_batch(extracted_text)   #COMMENTED OUT FOR DOCKER IMAGE
+                # self._upload_batch_to_rds()    #COMMENTED OUT FOR DOCKER IMAGE
                 #images 
                 rscs = self._extract_images_rsc()                   
                 self._save_images(extracted_text, rscs)
-                #self.build_image_batch (rscs, extracted_text[0]["Friendly_ID"])
-                self._upload_images_to_s3(extracted_text[0]["Friendly_ID"]) 
+                #self._upload_images_to_s3(extracted_text[0]["Friendly_ID"]) #COMMENTED OUT FOR DOCKER IMAGE
 
 
     def get_links(self, link: str, parent_xpath: str, child_xpath: str): #takes URL so it can be looped through on different pages
@@ -209,44 +208,44 @@ class Scraper():
                 urllib.request.urlretrieve(pic_rsc, f"{image_path}/{image_id}.jpeg"),  #also here added [0]
    
    
-    def _upload_images_to_s3(self, file_name: str): #same problem as df; need to upload them all at once! 
-        """
-        Takes in a file name, and if the user wants to scrape images and upload them to S3,
-        it uploads the image to S3. By default uses the friendly id generated in _extract_text().
+    # def _upload_images_to_s3(self, file_name: str): #COMMENTED OUT FOR DOCKER IMAGE
+    #     """
+    #     Takes in a file name, and if the user wants to scrape images and upload them to S3,
+    #     it uploads the image to S3. By default uses the friendly id generated in _extract_text().
         
-        Args: 
-            file_name: the name of the file you want to upload to S3
-        """
-        if scraper_variables.scrape_images and scraper_variables.upload:
-             s3_client = boto3.client('s3')
-             image_response = s3_client.upload_file(f'raw_data/{file_name}/images/{file_name}.jpeg', scraper_variables.bucket, file_name + ".jpeg")
+    #     Args: 
+    #         file_name: the name of the file you want to upload to S3
+    #     """
+    #     if scraper_variables.scrape_images and scraper_variables.upload:
+    #          s3_client = boto3.client('s3')
+    #          image_response = s3_client.upload_file(f'raw_data/{file_name}/images/{file_name}.jpeg', scraper_variables.bucket, file_name + ".jpeg")
 
 
-    def _add_to_df_batch (self, extracted_text: list): 
-        """
-    Takes a list of dictionaries as input, converts the list of dictionaries into 
-    a pandas dataframe, then appends the dataframe to a the list of dataframes df_batch. 
+    # def _add_to_df_batch (self, extracted_text: list): #COMMENTED OUT FOR DOCKER IMAGE
+    #     """
+    # Takes a list of dictionaries as input, converts the list of dictionaries into 
+    # a pandas dataframe, then appends the dataframe to a the list of dataframes df_batch. 
 
-    Args:
-        extracted_text: a list of dictionaries, each dictionary is a row in the dataframe
-        """
-        if scraper_variables.upload:
-            df= pd.DataFrame(extracted_text)
-            self.df_batch.append (df)
+    # Args:
+    #     extracted_text: a list of dictionaries, each dictionary is a row in the dataframe
+    #     """
+    #     if scraper_variables.upload:
+    #         df= pd.DataFrame(extracted_text)
+    #         self.df_batch.append (df)
 
 
-    def _upload_batch_to_rds(self):
-        """
-    Checks if df_batch has reached the batch size specified in scraper_variables. If so, concatinates 
-    the list into a singe dataframe and uploads the dateframe to the RDS (also specified in scraper_variables)    
-        """
-        if scraper_variables.upload: #make these if gates cleaner
-            if len (self.df_batch) == scraper_variables.batch_size:
-                complete_df = pd.concat (self.df_batch) 
-                complete_df = complete_df.astype ("str")
-                engine = create_engine (scraper_variables.connenction_string) 
-                complete_df.to_sql(scraper_variables.table_name, engine, if_exists='append') 
-                self.df_batch = []
+    # def _upload_batch_to_rds(self): #COMMENTED OUT FOR DOCKER IMAGE
+    #     """
+    # Checks if df_batch has reached the batch size specified in scraper_variables. If so, concatinates 
+    # the list into a singe dataframe and uploads the dateframe to the RDS (also specified in scraper_variables)    
+    #     """
+    #     if scraper_variables.upload: #make these if gates cleaner
+    #         if len (self.df_batch) == scraper_variables.batch_size:
+    #             complete_df = pd.concat (self.df_batch) 
+    #             complete_df = complete_df.astype ("str")
+    #             engine = create_engine (scraper_variables.connenction_string) 
+    #             complete_df.to_sql(scraper_variables.table_name, engine, if_exists='append') 
+    #             self.df_batch = []
 
 
 if __name__ == "__main__":
