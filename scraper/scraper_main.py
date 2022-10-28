@@ -1,25 +1,12 @@
-#could i make it a parent class and put all those variables in __init__? and then have a child class be imdb.scraper etc etc. 
 
-#TODO make sure raw data is being saved where it is supposed to be 
-
-#TODO possible added features: 
+# possible features to add: 
     #add a search bar method (e.g for searching something on linkedin)
     #add login method from tiktok_scraper.py 
  
 #TODO update setup.py deets 
 
-#TODO add path to scraper variables to make it customisable, or make it a parameter (?)
-#add the file to your folder structure inside the scraper folder so you can reference by a relative path.
-#better way: use os / sys model 
-#use sys to connect tot he path that that
-#sys allows the code to communicate with teh operating system. 
-#sys module join 
-
-#TODO add flags for running headless
-
-#TODO if it has already scraped the data, and it doesn't save it locally, it will still add it to teh df and upload it again; fix this? 
-
 from bs4 import BeautifulSoup
+from scraper import scraper_variables
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -30,11 +17,9 @@ import boto3
 import json
 import os
 import pandas as pd
-import scraper_variables
 import urllib.request
 import uuid
-from webdriver_manager.chrome import ChromeDriverManager
-#make sure my chrome is up to date! 
+from webdriver_manager.chrome import ChromeDriverManager #make sure my chrome is up to date! 
 
 
 class Scraper():
@@ -131,7 +116,7 @@ class Scraper():
                 print (f"no {catagory} data found at {link})")
                 compiled_data [catagory] = "null"
                 pass
-        return [self.__add_ids(compiled_data)]   ## added [] here to work with pd.read_json; 
+        return [self.__add_ids(compiled_data)]   ## added [] around compiled data to work with pd.read_json; 
         
 
     def __add_ids (self, compiled_data: dict):
@@ -224,17 +209,6 @@ class Scraper():
                 urllib.request.urlretrieve(pic_rsc, f"{image_path}/{image_id}.jpeg"),  #also here added [0]
    
    
-    # def build_image_batch (self, rscs, friendly_id):###in progress
-    #     if scraper_variables.scrape_images:
-    #         self.image_rsc_batch.append (rscs)
-    #         if len(self.image_rsc_batch) == scraper_variables.batch_size:
-    #             image_path = f"raw_data/image_batch"
-    #             os.makedirs(image_path)
-    #             for rsc_list in self.image_rsc_batch:
-    #                 for image_rsc in rsc_list:
-    #                     urllib.request.urlretrieve(image_rsc, f"{image_path}/{friendly_id}.jpeg"),
-    
-   
     def _upload_images_to_s3(self, file_name: str): #same problem as df; need to upload them all at once! 
         """
         Takes in a file name, and if the user wants to scrape images and upload them to S3,
@@ -278,50 +252,4 @@ class Scraper():
 if __name__ == "__main__":
     my_scraper = Scraper()
     my_scraper.scrape()
-
-
-
-
-    # def upload_text_to_RDS (self, extracted_text):
-    #     with psycopg2.connect(
-
-    #         host=scraper_variables.HOST, 
-    #         user=scraper_variables.USER, 
-    #         password=scraper_variables.PASSWORD, 
-    #         dbname=scraper_variables.DATABASE, 
-    #         port=scraper_variables.PORT
-            
-    #     ) as conn:
-    #         with conn.cursor() as cur:
-    #             cur.execute (f'''INSERT INTO test_table VALUES ( 
-    #             {extracted_text["Friendly_ID"]}, {extracted_text["UUID"]}
-    #             ) ''')
-    #             print ("TYPE IS:")
-    #             print(type(cur))
-    #             conn.commit()
-    #             records = cur.fetchall()
-
-
-    # def next_page(self, button_XPATH): #HMMMMMMMM maybe this just needs to all go in scrape()! 
-    #     counter = 0
-    #     while counter < scraper_variables.number_of_nexts:
-    #         try:
-    #             self.driver.find_element(By.XPATH, button_XPATH).click()
-    #             counter +=1
-    #         except NoSuchElementException:
-    #             print ("next button not found. Maybe no more pages left.")
-    #             break
-
-
-    #     next_button_cell= driver.find_element(By.XPATH, value= "desc")
-    #     a_tag = next_button_cell.find_element(By.TAG_NAME, value= 'a')
-    #     next_link = a_tag.get_attribute ('href')
-    #     self.driver.get (next_link)
-    #     # TODO add a while loop so it will stop scrolling once it hits the final next. 
-    #     #TODO generlalise this! 
-    #     #TODO is this just click
-    #     extracted_text = self.extract_text (link)
-    #     my_scraper.save_text (extracted_text)
-    #     my_scraper.save_images (extracted_text, self._extract_images_rsc (link) )
-
 

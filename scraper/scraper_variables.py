@@ -1,8 +1,11 @@
+
+import os
+
 url = 'https://www.imdb.com/feature/genre/?ref_=nv_ch_gr'
 
 #scrape images as well as text? 
 
-scrape_images = True
+scrape_images = False
 
 
 #Save locally and / or Upload to database? 
@@ -13,14 +16,13 @@ upload = False
 #Database Details
     #s3 bucket for images
 
-bucket = 'gthscraperbucket' 
+bucket = os.environ["S3_BUCKET"]
 
     #RDS database details
 
-connenction_string = 'postgresql://postgres:Data4940base1@database-1.c5li7shqfncz.eu-west-2.rds.amazonaws.com/postgres' #dialect+driver://username:password@host:port/database
-table_name = "test_table8"
-batch_size = 5 #number of data records you want to upload at a time. 
-
+connenction_string = os.environ["RDS_CONN_STRING"] #dialect+driver://username:password@host:port/database
+table_name = "test_table"
+batch_size = 5 #number of data records you want to upload at a time
 #layers, used in get_links() method. Different layers are for using get_links() on differently structured pages. 
 
 parent_xpath_one = '//*[@id="main"]/div[6]/span/div/div/div/div' 
