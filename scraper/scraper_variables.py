@@ -5,7 +5,7 @@ url = 'https://www.imdb.com/feature/genre/?ref_=nv_ch_gr'
 
 #scrape images as well as text? 
 
-scrape_images = False
+scrape_images = False #advise against scraping huge numbers of images with upload=True since they upload one at a time, so its costly. 
 
 
 #Save locally and / or Upload to database? 

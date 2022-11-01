@@ -8,7 +8,18 @@ setup(
     url='https://github.com/Gwyn-The-Human/Data-Collection-Pipeline',                                                            
     author='Gwyn-The-Human', # Your name
     license='MIT',
-    packages=find_packages(), # See notebook for detailed explanation
-    install_requires=['requests', 'beautifulsoup4'], # For this project we are using two external libraries
-                                                     # Make sure to include all external libraries in this argument
+    packages=find_packages(),
+    install_requires=[
+'argparse',
+'boto3',
+'bs4',
+'packaging',
+'pandas', 
+'scraper', 
+'selenium', 
+'sqlalchemy', 
+'urllib3',
+'uuid',
+'webdriver_manager',
+], 
 )
