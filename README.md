@@ -2,19 +2,20 @@
 
 Before using anything in this repo please read this quick and fun note on ethics: 
 
-## A Quick and Fun Note on Ethics
+## Ethical Use Guide
 
 ### Why its important: 
 1.These are real [lives at stake](https://fortune.com/2022/04/30/algorithm-screens-for-child-neglect-raises-concerns/)  
-2.You don’t want to look [really really bad.](https://www.nytimes.com/2021/01/15/world/europe/dutch-government-resignation-rutte-netherlands.html%20)
+2.You don’t want to look [really really bad.](https://www.nytimes.com/2021/01/15/world/europe/dutch-government-resignation-rutte-netherlands.html%20)  
+
 3.You don’t want to break the law and suffer [crippling EUR20mil fines.](https://gdpr-info.eu/issues/fines-penalties/#:~:text=83(4)%20GDPR%20sets%20forth,to%20that%20used%20in%20Art.)
 
-### What should I do about it?
-Algorithm ethics is still a nascient field, but here are a few things you can think about to make it less likely that you’ll run into the above issues nicely summarised for you from [ForHumanity's algorithm ethics course](https://forhumanity.center/forhumanity-university/), BUT REMEMBER THIS GUIDE IS NOT EXHAUSTIVE:
+### A brief guide on ethical use of the scraper
+Here are a few things you can think about to make it less likely that you’ll run into the above issues, summarised for you from [ForHumanity's algorithm ethics course](https://forhumanity.center/forhumanity-university/), but please remember this guide is NOT at all exhaustive:
 
-1.Set a clear objective. There’s no point in taking on unneccesary risks for data you don’t need. Be clear on what you actually need, and then only scrape that. 
+**1.**Set a clear objective. There’s no point in taking on unneccesary risks for data you don’t need. Be clear on what you actually need, and then only scrape that. 
 
-2.Once you’ve set your objective, consider as many stakeholders as you can. Some might be: 
+**2.**Once you’ve set your objective, consider as many stakeholders as you can. Some might be: 
 a)ME! This is my code! 
 b)Users of whatever your building
 c)Their immediate family and friends
@@ -23,26 +24,26 @@ e)The environment! Think of the trees!
 f)The subjects of the data you are scraping.
 g)You’re really smart, you can think of more. 
 
-3.Go through each of your stakeholders and get creative about possible ways your choices could be harmful to them / benifetting them unequally. For this scraper that might include your choice of: 
+**3.**Go through each of your stakeholders and get creative about possible ways your choices could be harmful to them / benifetting them unequally. For this scraper that might include your choice of: 
     i)project (is it really something you want to do? etc.)
     ii)website to scrape (whose data are you scraping & have they consented? etc.)
     iii)data catagories (do you need this data? Could this data be misused? is it a protected catogery? Could it be used to infer protected catagories? etc.) 
     iv)data catagory labelling (is anything implied by how you label? Any associations unintended associations? etc.)
 Ideally get a diverse group of people to discuss it with! Is there a little voice in your head that has a little bit of doubt? Great, You have found an instance of ethical choice! 
 
-4.Say out loud : “I am encountering an instance of Ethical Choice.” Really say it, it will actually help. 
+**4.**Say out loud : “I am encountering an instance of Ethical Choice.” Really say it, it will actually help. 
 
-5.Take some time to research your issue to get a better understanding of how the mechanisms your choice can effect the relevant stakeholders.
+**5.**Take some time to research your issue to get a better understanding of how the mechanisms your choice can effect the relevant stakeholders.
 
-6.Can you think of any ways to mitigate or avoid this issues in how you make the above choices? If so great, do that!!
+**6.**Can you think of any ways to mitigate or avoid this issues in how you make the above choices? If so great, do that!!
 
-7.Write down severity (0 is disturbance, 10 is death) vs. likelyhood (impossible, rare, unlikley, likely, certain) of forseeable consequences for each choice you’ll have to make, and decide what sort of risks you are willing to accept at which likelyhood. 
+**7.**Write down severity (0 is disturbance, 10 is death) vs. likelyhood (impossible, rare, unlikley, likely, certain) of forseeable consequences for each choice you’ll have to make, and decide what sort of risks you are willing to accept at which likelyhood. 
 
-8.Check in with your gut about your descisions. If you had to tell your mother / your grandmother / your child / your environmentalist friend about your your choices, what do you think they would say. 
+**8.**Check in with your gut about your descisions. If you had to tell your mother / your grandmother / your child / your environmentalist friend about your your choices, what do you think they would say. 
 
-9.Lastly, remember that there are no right answers here! This guide is to help you keep yourself accountable to your own morals, not mine. If you have got to this point and are confident in your choice, go for it! 
+**9.**Lastly, remember that there are no right answers here! This guide is to help you keep yourself accountable to your own morals, not mine. If you have got to this point and are confident in your choice, go for it! 
 
-10.Check in again in future to make sure you are still confident with your choices, given the things you’ve thought about so far, because things can change.
+**10.**Check in again in future to make sure you are still confident with your choices, given the things you’ve thought about so far, because things can change.
 
 OK that’s it! Please remember that this guide is not exhaustive; for more info see the course here https://forhumanity.center/forhumanity-university/  (its free!) or reach out to me directly for resources or questions. I also would also love to hear about your experience using the guide, if you thought it was helpful and accesible etc. 
 
