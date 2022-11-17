@@ -2,8 +2,11 @@
 # possible features to add: 
     #add a search bar method (e.g for searching something on linkedin)
     #add login method from tiktok_scraper.py 
+
+
+### Code Review ###
+#TODO inside your docstrings, you can describe some of the variables as well - the important ones - so you can avoid in-script comments where possible
  
-#TODO update setup.py deets 
 
 from bs4 import BeautifulSoup
 from scraper import scraper_variables
@@ -24,12 +27,17 @@ from webdriver_manager.chrome import ChromeDriverManager #make sure my chrome is
 
 class Scraper():
 
+ 
     def __init__(self):
-        #adds flag for running headless mode
+        """
+    Sets up the driver and creats the raw data folder and an empty df_batch list to be 
+    used for uploading text to the RDS. Optional flag --headless/-hdls for running 
+    scraper in headlless mode. 
+        """       
         option = None
         parser = argparse.ArgumentParser()
         parser.add_argument("-hdls", "--headless", help="run the scraper as headless",
-                            action="store_true")
+                            action="store_true") #adds flag for running headless mode
         args = parser.parse_args()
         if args.headless:
             option = Options()
@@ -37,12 +45,12 @@ class Scraper():
 
         #sets up driver, prepares raw data folder and df_batch list
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=option)
-        if os.path.exists ("raw_data") == False:
-            os.makedirs ("raw_data")
+        if os.path.exists("raw_data") == False:
+            os.makedirs("raw_data")
         self.df_batch = []
 
 
-    def scrape (self):
+    def scrape(self):
         """
         The main method that combines the other methods. Should be customised for use on websites other than imdb. 
         """ 
@@ -62,17 +70,18 @@ class Scraper():
                 self._upload_images_to_s3(extracted_text[0]["Friendly_ID"]) 
 
 
-    def get_links(self, link: str, parent_xpath: str, child_xpath: str): #takes URL so it can be looped through on different pages
+    def get_links(self, link: str, parent_xpath: str, child_xpath: str): 
         """
         Gets a list of links from the specified child elements of the given parent xpath.
         
-        
         Iterates through child elements of a given parent and returns list of links 
         within child elements of the given parent. If the child element has multiple
-        links, only the first link is added to the returned list.
+        links, only the first link is added to the returned list. Takes link as an arg
+        so it can be looped on itself and iterate through links returned by a previous
+        run of get_links. 
         
         Args:
-            url: the url of the page you want to scrape
+            link: the url of the page you want to scrape
             parent_xpath: the xpath of the parent element that contains the child elements you want
               to scrape
             child_xpath: the xpath shared by the child elements that contain the links
@@ -91,7 +100,7 @@ class Scraper():
         return links
    
 
-    def _extract_text (self, link: str):
+    def _extract_text(self, link: str):
         """
         Extracts text data from website.
         
@@ -102,6 +111,9 @@ class Scraper():
         __ad_ids, which generates a friendly ID from the extracted 
         text, and a uuid, both of which are included in the returned
          dictionary.   
+
+        Args:
+            link: the url of the page that has the text to be extracted. 
         
         Returns:
             list containing a single dictionary of the data scraped from the page, and associated IDs, all within a list.
@@ -116,10 +128,10 @@ class Scraper():
                 print (f"no {catagory} data found at {link})")
                 compiled_data [catagory] = "null"
                 pass
-        return [self.__add_ids(compiled_data)]   ## added [] around compiled data to work with pd.read_json; 
+        return [self.__add_ids(compiled_data)]  # added [] around compiled data to work with pd.read_json; 
         
 
-    def __add_ids (self, compiled_data: dict):
+    def __add_ids(self, compiled_data: dict):
         """
         Takes a dictionary of data, adds IDs as two new keys to the dictionary, and returns the
         dictionary
@@ -127,8 +139,8 @@ class Scraper():
         Args:
             compiled_data: the dataframe that is being passed in
 
-        Return: 
-            The compiled_data dictionary is being returned with added ID's.
+        Returns: 
+            the compiled_data dictionary is being returned with added ID's.
         """
         compiled_data["Friendly_ID"] = compiled_data[list(compiled_data)[0]] + "-" + compiled_data[list(compiled_data)[1]] #uses list () to index the dictionary compiled_data
         compiled_data["UUID"] = str(uuid.uuid4())
@@ -157,7 +169,7 @@ class Scraper():
     def _save_text(self, text_data: list):
         """
         Takes a list containing a dictionary of text data, and saves it in a file named after the friendly_ID
-        in the raw_data directory
+        in the raw_data directory. If no file exists, one is created. 
         
         Args:
             text_data: dictionary of the text data
@@ -188,7 +200,7 @@ class Scraper():
         for pic in pics: #the for statement loops through pics (a list) and allows for more than one image to be scraped. 
             rsc_list.append(pic ["src"])
             if rsc_list == []:
-                print ("no images found with the given attributes in scraper_variables.")
+                print("no images found with the given attributes in scraper_variables.")
         return rsc_list
 
     
@@ -222,7 +234,7 @@ class Scraper():
              image_response = s3_client.upload_file(f'raw_data/{file_name}/images/{file_name}.jpeg', scraper_variables.bucket, file_name + ".jpeg")
 
 
-    def _add_to_df_batch (self, extracted_text: list): 
+    def _add_to_df_batch(self, extracted_text: list): 
         """
     Takes a list of dictionaries as input, converts the list of dictionaries into 
     a pandas dataframe, then appends the dataframe to a the list of dataframes df_batch. 
